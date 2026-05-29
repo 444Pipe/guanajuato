@@ -1,6 +1,8 @@
 /* ===== DATA ===== */
-const P = 'statics/platos/';
-const S = 'statics/sedes/';
+/* Imágenes servidas desde Cloudinary con optimización automática (f_auto,q_auto) */
+const CLD = 'https://res.cloudinary.com/dxfgqsp8y/image/upload/f_auto,q_auto/guanajuato/';
+const P = CLD + 'platos/';
+const S = CLD + 'sedes/';
 
 const MENU = [
   { name:'Nachotes', cat:'compartir', tag:'Para compartir', price:'$32.000',
