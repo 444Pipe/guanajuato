@@ -69,11 +69,13 @@ const server = http.createServer((req, res) => {
       return fs.createReadStream(filePath, { start, end }).pipe(res);
     }
 
+    // HTML/CSS/JS se revalidan siempre; imágenes/video/fuentes con caché largo
+    const revalidate = ext === '.html' || ext === '.css' || ext === '.js';
     res.writeHead(200, {
       'Content-Type': type,
       'Accept-Ranges': 'bytes',
       'Content-Length': total,
-      'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=86400',
+      'Cache-Control': revalidate ? 'no-cache' : 'public, max-age=604800',
     });
     fs.createReadStream(filePath).pipe(res);
   });
