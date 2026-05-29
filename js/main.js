@@ -133,8 +133,18 @@ addEventListener('scroll', ()=> nav.classList.toggle('scrolled', scrollY > 60));
 
 const burger = document.getElementById('burger');
 const navLinks = document.getElementById('navLinks');
-burger.addEventListener('click', ()=> navLinks.classList.toggle('open'));
-navLinks.querySelectorAll('a').forEach(a=> a.addEventListener('click', ()=> navLinks.classList.remove('open')));
+function setMenu(open){
+  navLinks.classList.toggle('open', open);
+  burger.classList.toggle('active', open);
+  burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  document.body.classList.toggle('no-scroll', open);
+}
+burger.addEventListener('click', e => { e.stopPropagation(); setMenu(!navLinks.classList.contains('open')); });
+navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+// cerrar al tocar fuera del menú
+document.addEventListener('click', e => {
+  if (navLinks.classList.contains('open') && !navLinks.contains(e.target) && !burger.contains(e.target)) setMenu(false);
+});
 
 /* ===== EFECTOS DE SCROLL (parallax + progreso) ===== */
 const heroBg = document.getElementById('heroBg');

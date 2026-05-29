@@ -69,9 +69,13 @@ section{position:relative}
 .nav__links a:not(.nav__cta):hover::after{width:100%}
 .nav__cta{background:var(--terra);color:#fff!important;padding:9px 20px;border-radius:50px;font-size:.9rem;text-shadow:none!important;box-shadow:0 6px 18px rgba(192,73,43,.4);transition:.3s var(--ease)}
 .nav__cta:hover{transform:translateY(-2px);background:var(--brown)}
-.nav__burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:6px}
-.nav__burger span{width:26px;height:3px;background:var(--cream);border-radius:2px;transition:.3s}
+.nav__burger{display:none;position:relative;z-index:60;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.nav__burger span{width:26px;height:3px;background:var(--cream);border-radius:2px;transition:transform .3s var(--ease),opacity .25s,background .3s}
 .nav.scrolled .nav__burger span{background:var(--brown)}
+.nav__burger.active span{background:var(--cream)}
+.nav__burger.active span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+.nav__burger.active span:nth-child(2){opacity:0}
+.nav__burger.active span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
 
 /* ===== HERO ===== */
 .hero{min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden}
@@ -233,7 +237,7 @@ section{position:relative}
   .nav__burger{display:flex}
   .nav__brand img{height:50px}
   .nav.scrolled .nav__brand img{height:46px}
-  .nav__links{position:fixed;top:0;right:-100%;height:100dvh;width:78%;max-width:320px;background:var(--brown);flex-direction:column;justify-content:center;gap:26px;transition:.4s var(--ease);box-shadow:-10px 0 40px rgba(0,0,0,.4);z-index:55}
+  .nav__links{position:fixed;top:0;right:-100%;height:100vh;height:100dvh;width:78%;max-width:320px;background:var(--brown);flex-direction:column;justify-content:center;gap:26px;transition:right .4s var(--ease);box-shadow:-10px 0 40px rgba(0,0,0,.4);z-index:55;padding:80px 30px 30px;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .nav__links.open{right:0}
   .nav__links a{color:var(--cream);font-size:1.25rem;text-shadow:none}
   .nav.scrolled .nav__links a{color:var(--cream)}
