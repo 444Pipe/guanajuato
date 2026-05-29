@@ -239,7 +239,11 @@ section{position:relative}
   .nav.scrolled .nav__brand img{height:46px}
   .nav__links{position:fixed;top:0;right:-100%;height:100vh;height:100dvh;width:78%;max-width:320px;background:var(--brown);flex-direction:column;justify-content:center;gap:26px;transition:right .4s var(--ease);box-shadow:-10px 0 40px rgba(0,0,0,.4);z-index:55;padding:80px 30px 30px;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .nav__links.open{right:0}
-  .nav__links a{color:var(--cream);font-size:1.25rem;text-shadow:none}
+  /* cactus decorativos en el fondo del menú */
+  .nav__links::before,.nav__links::after{content:"";position:absolute;z-index:0;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='%23e0a526'%3E%3Cpath%20d='M11%2022v-5h-1a3%203%200%200%201-3-3V9a1%201%200%200%201%202%200v4a1%201%200%200%200%201%201h1V4a1%201%200%200%201%202%200v6h1a1%201%200%200%200%201-1V8a1%201%200%200%201%202%200v1a3%203%200%200%201-3%203h-1v10z'/%3E%3C/svg%3E") center/contain no-repeat}
+  .nav__links::before{width:190px;height:190px;left:-46px;bottom:5%;transform:rotate(-13deg);opacity:.1}
+  .nav__links::after{width:130px;height:130px;right:-30px;top:13%;transform:rotate(12deg);opacity:.08}
+  .nav__links a{position:relative;z-index:1;color:var(--cream);font-size:1.25rem;text-shadow:none}
   .nav.scrolled .nav__links a{color:var(--cream)}
   .nav__cta{padding:11px 26px}
   /* fondo más calmado para que resalte el texto */
