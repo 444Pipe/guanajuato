@@ -1,0 +1,12 @@
+{
+  "name": "guanajuato-restaurante",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sitio web de Guanajuato Restaurante Mexicano · Villavicencio",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
