@@ -34,6 +34,18 @@ section{position:relative}
 .ic{width:1em;height:1em;display:inline-block;vertical-align:-0.14em;flex:none}
 .ic--stroke{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
+/* ===== PRELOADER ===== */
+.preloader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:24px;
+  background:var(--brown);
+  background-image:radial-gradient(circle at 20% 20%,rgba(224,165,38,.10),transparent 45%),radial-gradient(circle at 80% 80%,rgba(192,73,43,.14),transparent 45%);
+  transition:opacity .55s ease,visibility .55s ease}
+.preloader--hidden{opacity:0;visibility:hidden}
+.preloader__logo{width:min(62%,230px);height:auto;display:block;background:var(--logo-bg);padding:12px 18px;border-radius:16px;box-shadow:0 12px 34px rgba(0,0,0,.35);animation:prePulse 1.6s var(--ease) infinite}
+@keyframes prePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+.preloader__track{width:min(72%,270px);height:6px;background:rgba(247,239,226,.18);border-radius:50px;overflow:hidden}
+.preloader__bar{height:100%;width:0;background:linear-gradient(90deg,var(--terra),var(--gold),var(--green));border-radius:50px;transition:width .3s ease}
+.preloader__txt{color:var(--cream);font-family:'Bebas Neue',sans-serif;letter-spacing:2.5px;font-size:1.15rem;opacity:.85}
+
 /* ===== PAPEL PICADO ===== */
 .papel-picado{position:fixed;top:0;left:0;width:100%;height:26px;z-index:60;display:flex;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(40,18,10,.18))}
 .papel-picado span{
