@@ -357,6 +357,9 @@ body.no-scroll{overflow:hidden}
 .co__form input:focus,.co__form select:focus,.co__form textarea:focus{outline:0;border-color:var(--terra)}
 .co__form .err{border-color:var(--terra);background:#fdecec}
 .co__form textarea{resize:vertical;min-height:60px}
+.co__seg{display:flex;gap:6px;background:var(--sand-light);padding:5px;border-radius:14px;margin:8px 0 14px}
+.co__seg button{flex:1;font-family:'Poppins';font-weight:600;font-size:.88rem;padding:11px 6px;border:0;border-radius:10px;background:transparent;color:var(--brown-2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:.2s}
+.co__seg button.active{background:#fff;color:var(--brown);box-shadow:0 3px 10px rgba(40,18,10,.12)}
 .co__row{display:flex;gap:12px}
 .co__row>div{flex:1;min-width:0}
 .sede__btn--reserva{background:var(--terra);border-color:var(--terra);color:#fff}

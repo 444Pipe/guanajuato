@@ -183,7 +183,15 @@ onScroll();
 const ORDER = (() => {
   const cart = {};            // índice de MENU -> cantidad
   let step = 'menu';          // 'menu' | 'checkout'
+  let mode = 'domicilio';     // 'domicilio' | 'recoger'
   let activeCat = 'all';
+  const saved = {};           // valores del formulario que se conservan al cambiar de modo
+
+  // Sedes donde se puede recoger el pedido (con su WhatsApp)
+  const PICKUP = [
+    { name: 'La Octava',           tel: '573053701859', place: 'Calle 15 #37F-38, Local 7' },
+    { name: 'CC Primavera Urbana', tel: '573013614500', place: 'C.C. Primavera Urbana' },
+  ];
 
   const CATS = [
     { k:'all',         label:'Todo' },
@@ -208,8 +216,8 @@ const ORDER = (() => {
     <div class="order__panel" role="dialog" aria-modal="true" aria-label="Pedido a domicilio">
       <header class="order__head">
         <div>
-          <h3>Pide a domicilio</h3>
-          <p class="order__sede"><svg class="ic ic--stroke" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Solo sede La Octava · Calle 15 #37F-38, Local 7</p>
+          <h3>Haz tu pedido</h3>
+          <p class="order__sede"><svg class="ic ic--stroke" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> A domicilio (La Octava) o recoge en el local</p>
         </div>
         <button class="order__close" data-close aria-label="Cerrar">✕</button>
       </header>
@@ -283,23 +291,39 @@ const ORDER = (() => {
 
   /* ---- render carrito + formulario (estructura completa) ---- */
   function renderCheckout() {
+    const isPick = mode === 'recoger';
     coBody.innerHTML = `
       <button class="co__back" data-back>← Volver al menú</button>
       <h3 class="co__h">Tu pedido</h3>
       <div id="coLines">${cartLinesHTML()}</div>
       <div class="co__total"><span>Subtotal</span><span id="coTotal">${fmt(total())}</span></div>
-      <p class="co__note">El valor del domicilio se confirma por WhatsApp según tu ubicación. 🛵</p>
+
+      <div class="co__seg" id="coSeg">
+        <button type="button" data-mode="domicilio" class="${isPick ? '' : 'active'}">🛵 Domicilio</button>
+        <button type="button" data-mode="recoger" class="${isPick ? 'active' : ''}">🥡 Recoger</button>
+      </div>
+
+      <p class="co__note">${isPick
+        ? 'Pasa por tu pedido en la sede que elijas. Te avisamos por WhatsApp cuando esté listo. 🥡'
+        : 'El valor del domicilio se confirma por WhatsApp según tu ubicación. 🛵'}</p>
 
       <form class="co__form" id="coForm" novalidate>
-        <h3 class="co__h">Datos de entrega</h3>
+        <h3 class="co__h">${isPick ? 'Tus datos' : 'Datos de entrega'}</h3>
         <label for="coName">Nombre completo *</label>
         <input id="coName" type="text" autocomplete="name" placeholder="Tu nombre">
         <label for="coTel">Teléfono / Celular *</label>
         <input id="coTel" type="tel" autocomplete="tel" placeholder="3xx xxx xxxx">
+        ${isPick ? `
+        <label for="coSede">¿En qué sede recoges? *</label>
+        <select id="coSede">${PICKUP.map(s => `<option value="${s.tel}">${s.name} · ${s.place}</option>`).join('')}</select>
+        <label for="coHora">¿A qué hora pasas? (aprox.)</label>
+        <input id="coHora" type="text" placeholder="Ej: 7:30 pm (opcional)">
+        ` : `
         <label for="coDir">Dirección *</label>
         <input id="coDir" type="text" placeholder="Calle, carrera, # casa/apto">
         <label for="coBarrio">Barrio / Punto de referencia</label>
         <input id="coBarrio" type="text" placeholder="Ej: Barrio La Esperanza, frente al parque">
+        `}
         <label for="coPago">Método de pago</label>
         <select id="coPago">
           <option>Efectivo</option>
@@ -312,6 +336,21 @@ const ORDER = (() => {
         <label for="coNotas">Notas adicionales</label>
         <textarea id="coNotas" placeholder="Sin cebolla, salsa extra, etc."></textarea>
       </form>`;
+    restoreForm();
+  }
+
+  /* conserva los datos comunes al alternar Domicilio/Recoger */
+  function saveForm() {
+    ['coName', 'coTel', 'coPago', 'coCambio', 'coNotas'].forEach(id => {
+      const el = root.querySelector('#' + id);
+      if (el) saved[id] = el.value;
+    });
+  }
+  function restoreForm() {
+    Object.keys(saved).forEach(id => {
+      const el = root.querySelector('#' + id);
+      if (el) el.value = saved[id];
+    });
   }
 
   /* ---- barra inferior ---- */
@@ -351,44 +390,73 @@ const ORDER = (() => {
     refresh();
   }
 
+  /* líneas del pedido para el mensaje */
+  function pedidoLines() {
+    return Object.entries(cart)
+      .map(([i, q]) => `• ${q}x ${MENU[i].name} — ${fmt(price(MENU[i].price) * q)}`)
+      .join('\n');
+  }
+
   /* ---- enviar a WhatsApp ---- */
   function send() {
     if (count() === 0) return;
     const v = id => (root.querySelector('#' + id) || {}).value || '';
+    const isPick = mode === 'recoger';
     const name = root.querySelector('#coName');
     const tel  = root.querySelector('#coTel');
-    const dir  = root.querySelector('#coDir');
+    const dir  = isPick ? null : root.querySelector('#coDir');
 
-    let ok = true;
+    let ok = true, first = null;
     [name, tel, dir].forEach(f => {
+      if (!f) return;
       const bad = !f.value.trim();
       f.classList.toggle('err', bad);
-      if (bad) ok = false;
+      if (bad) { ok = false; if (!first) first = f; }
     });
-    if (!ok) { (name.value ? (tel.value ? dir : tel) : name).focus(); return; }
+    if (!ok) { first.focus(); return; }
 
-    const pago = v('coPago'), cambio = v('coCambio').trim(),
-          barrio = v('coBarrio').trim(), notas = v('coNotas').trim();
+    const pago = v('coPago'), cambio = v('coCambio').trim(), notas = v('coNotas').trim();
+    let msg, waNum;
 
-    let msg = `🌮 *NUEVO PEDIDO – Guanajuato* 🌮\n`;
-    msg += `📍 Sede La Octava (Calle 15 #37F-38, Local 7)\n\n`;
-    msg += `*🛒 Mi pedido:*\n`;
-    Object.entries(cart).forEach(([i, q]) => {
-      msg += `• ${q}x ${MENU[i].name} — ${fmt(price(MENU[i].price) * q)}\n`;
-    });
-    msg += `\n*Subtotal: ${fmt(total())}*\n`;
-    msg += `_El valor del domicilio se confirma según mi ubicación._\n\n`;
-    msg += `👤 *Datos de entrega*\n`;
-    msg += `Nombre: ${name.value.trim()}\n`;
-    msg += `Teléfono: ${tel.value.trim()}\n`;
-    msg += `Dirección: ${dir.value.trim()}\n`;
-    if (barrio) msg += `Barrio/Referencia: ${barrio}\n`;
-    msg += `Pago: ${pago}`;
-    if (pago === 'Efectivo' && cambio) msg += ` (paga con ${cambio})`;
-    msg += `\n`;
-    if (notas) msg += `Notas: ${notas}\n`;
+    if (isPick) {
+      const sedeSel = root.querySelector('#coSede');
+      waNum = sedeSel.value;
+      const sedeName = sedeSel.options[sedeSel.selectedIndex].text;
+      const hora = v('coHora').trim();
 
-    window.open(WA + encodeURIComponent(msg), '_blank', 'noopener');
+      msg  = `🥡 *NUEVO PEDIDO – PARA RECOGER* 🥡\n`;
+      msg += `📍 Recojo en: ${sedeName}\n\n`;
+      msg += `*🛒 Mi pedido:*\n${pedidoLines()}\n`;
+      msg += `\n*Total: ${fmt(total())}*\n\n`;
+      msg += `👤 *Mis datos*\n`;
+      msg += `Nombre: ${name.value.trim()}\n`;
+      msg += `Teléfono: ${tel.value.trim()}\n`;
+      if (hora) msg += `Hora aprox. de recogida: ${hora}\n`;
+      msg += `Pago: ${pago}`;
+      if (pago === 'Efectivo' && cambio) msg += ` (paga con ${cambio})`;
+      msg += `\n`;
+      if (notas) msg += `Notas: ${notas}\n`;
+    } else {
+      waNum = '573053701859';
+      const barrio = v('coBarrio').trim();
+
+      msg  = `🌮 *NUEVO PEDIDO – Guanajuato* 🌮\n`;
+      msg += `🛵 Domicilio · Sede La Octava (Calle 15 #37F-38, Local 7)\n\n`;
+      msg += `*🛒 Mi pedido:*\n${pedidoLines()}\n`;
+      msg += `\n*Subtotal: ${fmt(total())}*\n`;
+      msg += `_El valor del domicilio se confirma según mi ubicación._\n\n`;
+      msg += `👤 *Datos de entrega*\n`;
+      msg += `Nombre: ${name.value.trim()}\n`;
+      msg += `Teléfono: ${tel.value.trim()}\n`;
+      msg += `Dirección: ${dir.value.trim()}\n`;
+      if (barrio) msg += `Barrio/Referencia: ${barrio}\n`;
+      msg += `Pago: ${pago}`;
+      if (pago === 'Efectivo' && cambio) msg += ` (paga con ${cambio})`;
+      msg += `\n`;
+      if (notas) msg += `Notas: ${notas}\n`;
+    }
+
+    window.open('https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
   }
 
   /* ---- delegación de eventos ---- */
@@ -396,6 +464,12 @@ const ORDER = (() => {
     if (e.target.closest('[data-close]')) return close();
     const back = e.target.closest('[data-back]');
     if (back) { step = 'menu'; showStep(); return; }
+    const seg = e.target.closest('[data-mode]');
+    if (seg) {
+      const m = seg.dataset.mode;
+      if (m !== mode) { saveForm(); mode = m; renderCheckout(); }
+      return;
+    }
     const tab = e.target.closest('[data-cat]');
     if (tab) { activeCat = tab.dataset.cat; renderList(); return; }
     const incEl = e.target.closest('[data-inc]');
