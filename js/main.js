@@ -69,6 +69,41 @@ const SEDES = [
 
 const WA = 'https://wa.me/573053701859?text=';
 
+/* ===== MEMORIA DEL CLIENTE (recuerda datos entre pedidos) ===== */
+const CLIENT = (() => { try { return JSON.parse(localStorage.getItem('gj_cliente') || '{}'); } catch (e) { return {}; } })();
+function saveClient(data) {
+  try { Object.assign(CLIENT, data); localStorage.setItem('gj_cliente', JSON.stringify(CLIENT)); } catch (e) {}
+}
+
+/* ===== APARICIÓN SUAVE DE IMÁGENES ===== */
+function wireFadeImgs(scope) {
+  (scope || document).querySelectorAll('img.fade-img:not(.loaded)').forEach(img => {
+    if (img.complete && img.naturalWidth > 0) { img.classList.add('loaded'); return; }
+    img.addEventListener('load', () => img.classList.add('loaded'), { once: true });
+    img.addEventListener('error', () => img.classList.add('loaded'), { once: true });
+  });
+}
+
+/* ===== FOCO EN MODALES (accesibilidad) ===== */
+let _lastFocused = null;
+function trapFocus(panel) {
+  _lastFocused = document.activeElement;
+  panel.setAttribute('tabindex', '-1');
+  try { panel.focus({ preventScroll: true }); } catch (e) { panel.focus(); }
+  const onKey = e => {
+    if (e.key !== 'Tab') return;
+    const f = [...panel.querySelectorAll('a[href],button:not([disabled]),input,select,textarea')]
+      .filter(el => !el.disabled && el.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && (document.activeElement === first || document.activeElement === panel)) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+  panel.addEventListener('keydown', onKey);
+  panel._release = () => { panel.removeEventListener('keydown', onKey); if (_lastFocused && _lastFocused.focus) { try { _lastFocused.focus({ preventScroll: true }); } catch (e) {} } };
+}
+function releaseFocus(panel) { if (panel && panel._release) { panel._release(); panel._release = null; } }
+
 /* ===== RENDER MENU (solo destacados) ===== */
 const grid = document.getElementById('menuGrid');
 function renderMenu(){
@@ -80,7 +115,7 @@ function renderMenu(){
     el.innerHTML = `
       <div class="card__img">
         <span class="card__tag">${m.tag}</span>
-        <img src="${m.img}" alt="${m.name}" loading="lazy">
+        <img src="${m.img}" alt="${m.name}" class="fade-img" loading="lazy">
       </div>
       <div class="card__body">
         <h3>${m.name}</h3>
@@ -93,6 +128,7 @@ function renderMenu(){
     grid.appendChild(el);
   });
   observeCards();
+  wireFadeImgs(grid);
 }
 
 /* ===== RENDER SEDES ===== */
@@ -101,7 +137,7 @@ SEDES.forEach(s=>{
   const el = document.createElement('article');
   el.className = 'sede';
   el.innerHTML = `
-    <img src="${s.img}" alt="${s.name}" loading="lazy">
+    <img src="${s.img}" alt="${s.name}" class="fade-img" loading="lazy">
     <div class="sede__overlay">
       <span class="sede__pin"><svg class="ic ic--stroke" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${s.place}</span>
       <h3>${s.name}</h3>
@@ -114,6 +150,7 @@ SEDES.forEach(s=>{
     </div>`;
   sedesGrid.appendChild(el);
 });
+wireFadeImgs(sedesGrid);
 
 
 /* ===== SCROLL REVEAL ===== */
@@ -259,7 +296,7 @@ const ORDER = (() => {
       .map(({ m, i }) => {
         const q = cart[i] || 0;
         return `<div class="oitem">
-          <img src="${m.img}" alt="${m.name}" loading="lazy">
+          <img src="${m.img}" alt="${m.name}" class="fade-img" loading="lazy">
           <div class="oitem__info">
             <h4>${m.name}</h4>
             <p>${m.desc}</p>
@@ -270,6 +307,7 @@ const ORDER = (() => {
           </div>
         </div>`;
       }).join('');
+    wireFadeImgs(listEl);
   }
 
   function cartLinesHTML() {
@@ -336,12 +374,20 @@ const ORDER = (() => {
         <label for="coNotas">Notas adicionales</label>
         <textarea id="coNotas" placeholder="Sin cebolla, salsa extra, etc."></textarea>
       </form>`;
+    prefillClient();
     restoreForm();
   }
 
-  /* conserva los datos comunes al alternar Domicilio/Recoger */
+  /* prellena con los datos guardados del cliente (si el campo está vacío) */
+  function prefillClient() {
+    const set = (id, val) => { const el = root.querySelector('#' + id); if (el && !el.value && val) el.value = val; };
+    set('coName', CLIENT.name); set('coTel', CLIENT.tel);
+    set('coDir', CLIENT.dir);   set('coBarrio', CLIENT.barrio);
+  }
+
+  /* conserva los datos al alternar Domicilio/Recoger */
   function saveForm() {
-    ['coName', 'coTel', 'coPago', 'coCambio', 'coNotas'].forEach(id => {
+    ['coName', 'coTel', 'coDir', 'coBarrio', 'coPago', 'coCambio', 'coNotas'].forEach(id => {
       const el = root.querySelector('#' + id);
       if (el) saved[id] = el.value;
     });
@@ -456,6 +502,10 @@ const ORDER = (() => {
       if (notas) msg += `Notas: ${notas}\n`;
     }
 
+    // recuerda los datos para la próxima vez
+    saveClient({ name: name.value.trim(), tel: tel.value.trim() });
+    if (!isPick) saveClient({ dir: dir.value.trim(), barrio: v('coBarrio').trim() });
+
     window.open('https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
   }
 
@@ -486,15 +536,18 @@ const ORDER = (() => {
     if (e.key === 'Escape' && root.classList.contains('open')) close();
   });
 
+  const panel = root.querySelector('.order__panel');
   function open() {
     step = 'menu';
     showStep();
     root.classList.add('open');
     document.body.classList.add('no-scroll');
+    trapFocus(panel);
   }
   function close() {
     root.classList.remove('open');
     document.body.classList.remove('no-scroll');
+    releaseFocus(panel);
   }
 
   showStep();
@@ -620,6 +673,7 @@ const RESERVA = (() => {
     msg += `📞 Teléfono: ${tel.value.trim()}\n`;
     if (notas) msg += `Notas: ${notas}\n`;
 
+    saveClient({ name: nombre.value.trim(), tel: tel.value.trim() });
     window.open(`https://wa.me/${sObj.tel}?text=` + encodeURIComponent(msg), '_blank', 'noopener');
   }
 
@@ -631,14 +685,19 @@ const RESERVA = (() => {
     if (e.key === 'Escape' && root.classList.contains('open')) close();
   });
 
+  const panel = root.querySelector('.order__panel');
   function open(sedeKey) {
     if (sedeKey) q('rSede').value = sedeKey;
+    if (CLIENT.name && !q('rNombre').value) q('rNombre').value = CLIENT.name;
+    if (CLIENT.tel && !q('rTel').value) q('rTel').value = CLIENT.tel;
     root.classList.add('open');
     document.body.classList.add('no-scroll');
+    trapFocus(panel);
   }
   function close() {
     root.classList.remove('open');
     document.body.classList.remove('no-scroll');
+    releaseFocus(panel);
   }
   return { open };
 })();
@@ -666,6 +725,25 @@ if (aboutVideo && aboutSound) {
     paint();
   });
 }
+
+/* ===== SCROLLSPY (resalta la sección activa en el nav) ===== */
+(() => {
+  const links = {};
+  document.querySelectorAll('.nav__links a').forEach(a => {
+    const href = a.getAttribute('href') || '';
+    if (href.startsWith('#') && href.length > 1) links[href.slice(1)] = a;
+  });
+  const sections = Object.keys(links).map(id => document.getElementById(id)).filter(Boolean);
+  if (!sections.length) return;
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      Object.values(links).forEach(a => a.classList.remove('active'));
+      if (links[en.target.id]) links[en.target.id].classList.add('active');
+    });
+  }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+  sections.forEach(s => spy.observe(s));
+})();
 
 /* ===== INIT ===== */
 renderMenu();

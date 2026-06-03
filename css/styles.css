@@ -35,6 +35,10 @@ section{position:relative}
 .ic--stroke{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .flag-mx{width:1.5em;height:1em;vertical-align:-0.18em;margin-left:3px;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 
+/* aparición suave de imágenes */
+.fade-img{opacity:0;transition:opacity .55s ease}
+.fade-img.loaded{opacity:1}
+
 /* ===== PRELOADER ===== */
 .preloader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:24px;
   background:var(--brown);
@@ -80,6 +84,9 @@ section{position:relative}
 .nav.scrolled .nav__links a{color:var(--brown);text-shadow:none}
 .nav__links a:not(.nav__cta)::after{content:"";position:absolute;left:0;bottom:-6px;width:0;height:2px;background:var(--terra);transition:.3s var(--ease)}
 .nav__links a:not(.nav__cta):hover::after{width:100%}
+.nav__links a.active:not(.nav__cta)::after{width:100%}
+.nav__links a.active:not(.nav__cta){color:var(--gold)}
+.nav.scrolled .nav__links a.active:not(.nav__cta){color:var(--terra)}
 .nav__cta{background:var(--terra);color:#fff!important;padding:9px 20px;border-radius:50px;font-size:.9rem;text-shadow:none!important;box-shadow:0 6px 18px rgba(192,73,43,.4);transition:.3s var(--ease)}
 .nav__cta:hover{transform:translateY(-2px);background:var(--brown)}
 .nav__burger{display:none;position:relative;z-index:60;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -301,7 +308,16 @@ section{position:relative}
   .btn{padding:14px 26px}
   .sede{height:380px}
 }
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal,.card,.sede,.about__list li{opacity:1;transform:none}.scroll-progress{display:none}}
+/* en pantallas táctiles, sin "hover pegado" tras tocar */
+@media(hover:none){
+  .card:hover{transform:none}
+  .card:hover .card__img img{transform:none}
+  .sede:hover{transform:none}
+  .sede:hover img{transform:none}
+  .btn--primary:hover,.btn--ghost:hover,.nav__cta:hover,.whatsapp-float:hover,.about__sound:hover{transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal,.card,.sede,.about__list li,.fade-img{opacity:1;transform:none}.scroll-progress{display:none}}
 
 /* ===== DOMICILIOS / ORDER ===== */
 body.no-scroll{overflow:hidden}
