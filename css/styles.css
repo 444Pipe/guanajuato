@@ -91,7 +91,7 @@ section{position:relative}
 
 /* ===== HERO ===== */
 .hero{min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden}
-.hero__bg{position:absolute;inset:0;background:var(--brown) center/cover no-repeat;transform:scale(1.1);transition:transform .6s ease;will-change:transform}
+.hero__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--brown);transform:scale(1.1);transition:transform .6s ease;will-change:transform}
 .hero__overlay{position:absolute;inset:0;background:
   linear-gradient(100deg,rgba(36,16,9,.92) 0%,rgba(36,16,9,.55) 45%,rgba(36,16,9,.2) 100%),
   radial-gradient(circle at 80% 80%,transparent 40%,rgba(36,16,9,.6))}
@@ -260,8 +260,8 @@ section{position:relative}
   .nav__cta{padding:11px 26px}
   /* fondo más calmado para que resalte el texto */
   .hero{align-items:flex-start}
-  .hero__bg{filter:saturate(.82) brightness(.86)}
-  .hero__overlay{background:linear-gradient(180deg,rgba(36,16,9,.88) 0%,rgba(36,16,9,.5) 46%,rgba(36,16,9,.94) 100%)}
+  .hero__bg{filter:brightness(.92)}
+  .hero__overlay{background:linear-gradient(180deg,rgba(36,16,9,.82) 0%,rgba(36,16,9,.42) 40%,rgba(36,16,9,.92) 100%)}
   .hero__content{padding:104px 24px 64px}
   .hero__eyebrow{font-size:.66rem;letter-spacing:1.4px;padding:6px 14px;margin-bottom:16px}
   .hero__title{margin-bottom:16px}
