@@ -299,13 +299,13 @@ const ORDER = (() => {
       <div class="co__total"><span>Subtotal</span><span id="coTotal">${fmt(total())}</span></div>
 
       <div class="co__seg" id="coSeg">
-        <button type="button" data-mode="domicilio" class="${isPick ? '' : 'active'}">🛵 Domicilio</button>
-        <button type="button" data-mode="recoger" class="${isPick ? 'active' : ''}">🥡 Recoger</button>
+        <button type="button" data-mode="domicilio" class="${isPick ? '' : 'active'}"><svg class="ic ic--stroke" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="7" width="13" height="9" rx="1"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.7"/><circle cx="18" cy="18" r="1.7"/></svg> Domicilio</button>
+        <button type="button" data-mode="recoger" class="${isPick ? 'active' : ''}"><svg class="ic ic--stroke" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1.2 12.5a1 1 0 0 1-1 .9H8.2a1 1 0 0 1-1-.9L6 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg> Recoger</button>
       </div>
 
       <p class="co__note">${isPick
-        ? 'Pasa por tu pedido en la sede que elijas. Te avisamos por WhatsApp cuando esté listo. 🥡'
-        : 'El valor del domicilio se confirma por WhatsApp según tu ubicación. 🛵'}</p>
+        ? 'Pasa por tu pedido en la sede que elijas. Te avisamos por WhatsApp cuando esté listo.'
+        : 'El valor del domicilio se confirma por WhatsApp según tu ubicación.'}</p>
 
       <form class="co__form" id="coForm" novalidate>
         <h3 class="co__h">${isPick ? 'Tus datos' : 'Datos de entrega'}</h3>
